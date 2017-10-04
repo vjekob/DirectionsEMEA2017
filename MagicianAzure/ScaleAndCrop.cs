@@ -25,12 +25,18 @@ namespace MagicianAzure
                 {
                     scaledBitmap.Save(tempStream1, ImageFormat.Png);
                     var croppedBitmap = Magician.Crop(tempStream1, 300, 300);
-                    croppedBitmap.Save(outStream, ImageFormat.Png);
+                    using (var tempStream2 = new MemoryStream())
+                    {
+                        croppedBitmap.Save(tempStream2, ImageFormat.Png);
 
-                    var result = new HttpResponseMessage(HttpStatusCode.OK);
-                    result.Content = new ByteArrayContent(outStream.ToArray());
-                    result.Content.Headers.Add("Content-Type", "application/octet-stream");
-                    return result;
+                        var proc = new ImageProcessor.ImageFactory();
+                        proc.Load(tempStream2.ToArray()).RoundedCorners(150).Save(outStream);
+
+                        var result = new HttpResponseMessage(HttpStatusCode.OK);
+                        result.Content = new ByteArrayContent(outStream.ToArray());
+                        result.Content.Headers.Add("Content-Type", "application/octet-stream");
+                        return result;
+                    }
                 }
             }
         }
